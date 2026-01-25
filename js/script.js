@@ -6,9 +6,9 @@ let isPlaying = false;
 
 // fitur waktu mundur
 simplyCountdown(".simply-countdown", {
-  year: 2024, // required
-  month: 4, // required
-  day: 11, // required
+  year: 2027, // required
+  month: 7, // required
+  day: 2, // required
   hours: 12, // Default is 0 [0-23] integer
   words: {
     //words displayed into the countdown

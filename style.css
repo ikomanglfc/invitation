@@ -673,6 +673,10 @@ section p {
     padding: 4rem 0;
   }
 
+  .info .card {
+    margin-bottom: 2rem;
+  }
+
   /* Hero */
   .hero h1 {
     font-size: 3.5rem;
@@ -753,6 +757,9 @@ section p {
   .home .couple h3 {
     margin-top: 5px;
     font-size: 2.5rem;
+    font-family: 'Quicksand', sans-serif !important;
+    font-weight: 700 !important;
+    font-style: normal !important;
   }
 
   .home .heart {
@@ -769,16 +776,21 @@ section p {
   .timeline li .timeline-image {
     width: 80px;
     height: 80px;
-    left: 0;
+    left: 40px;
+    /* Aligned with line */
     margin-left: 0;
+    transform: translateX(-50%);
+    /* Center on line */
   }
 
   .timeline li .timeline-panel {
-    width: calc(100% - 100px);
+    width: calc(100% - 110px);
+    /* Increased space to prevent overlap */
     float: right;
     padding: 1.5rem;
     text-align: left;
-    /* Ensure text is legible */
+    margin-right: 10px;
+    /* Added right margin for better mobile spacing */
   }
 
   .timeline li.timeline-inverted .timeline-panel {
