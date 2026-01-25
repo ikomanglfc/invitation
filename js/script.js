@@ -59,18 +59,7 @@ audioWrapper.onclick = function () {
 disableScroll();
 
 window.addEventListener("load", function () {
-  const form = document.getElementById("my-form");
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    const data = new FormData(form);
-    const action = e.target.action;
-    fetch(action, {
-      method: "POST",
-      body: data,
-    }).then(() => {
-      alert("Konfirmasi kehadiran berhasil tersimpan, Terima kasih!");
-    });
-  });
+  // RSVP logic removed
 });
 
 // fitur get nama
@@ -89,7 +78,7 @@ if (to) {
   namaCon.innerText = `${pronoun} ${nama},`.replace(/ ,$/, ",");
 }
 
-document.querySelector("#nama").value = nama;
+
 
 
 // WISHES FORM HANDLER
@@ -99,7 +88,7 @@ window.addEventListener("load", function () {
   const loading = document.getElementById("loading-wishes");
 
   // URL of your Google Apps Script
-  const scriptURL = 'https://script.google.com/macros/s/AKfycbz6RTvRKk5QisSuGdZPk-2fL2oCMnrvskq2YXx1-4Zv4ODBZFCkaJRYxtKrmqBoD5Ymfg/exec';
+  const scriptURL = 'https://script.google.com/macros/s/AKfycbw80kvNWuiKNvrSh_VTtrqPXlrW7jUTNGM5BtnUb23HhsOYBsP5b5bGwqerWLuKlihz/exec';
 
   // Load Wishes on Entry
   loadWishes();
@@ -108,40 +97,37 @@ window.addEventListener("load", function () {
     if (!loading || !wishesContainer) return;
 
     loading.classList.remove("d-none");
-    // Use a unique param to avoid caching
+
+    // Kita panggil dengan parameter action=getWishes
     fetch(scriptURL + "?action=getWishes&t=" + new Date().getTime())
       .then(response => response.json())
       .then(data => {
         loading.classList.add("d-none");
         if (data.status === 'success' && data.wishes) {
+          // Bersihkan kontainer tapi sisakan loading spinner (tersembunyi)
           wishesContainer.innerHTML = '';
-          wishesContainer.appendChild(loading); // Keep spinner for next time
+          wishesContainer.appendChild(loading);
 
           data.wishes.forEach(wish => {
             const div = document.createElement("div");
             div.className = "wish-item p-3 mb-3 border rounded bg-white shadow-sm text-start";
             div.innerHTML = `
-                    <h6 class="mb-1 fw-bold" style="color: var(--pastel-rose);">${wish.nama}</h6>
-                    <p class="mb-0 text-muted small">${wish.ucapan}</p>
-                    <small class="text-secondary" style="font-size: 0.7em;">${wish.waktu || ''}</small>
+                    <h6 class="mb-1">${wish.nama}</h6>
+                    <p class="mb-0">${wish.ucapan}</p>
+                    <small>${wish.waktu ? new Date(wish.waktu).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</small>
                   `;
             wishesContainer.appendChild(div);
           });
         }
       })
       .catch(error => {
-        console.log('Backend not ready for getWishes yet. This is expected until GAS is updated.');
+        console.warn('Gagal mengambil data ucapan. Pastikan Google Apps Script sudah dideploy sebagai Public.');
         loading.classList.add("d-none");
-        // Static Example when no backend available yet
-        /*
-        const div = document.createElement("div");
-        div.className = "wish-item p-3 mb-3 border rounded bg-white shadow-sm text-start";
-        div.innerHTML = `
-          <h6 class="mb-1 fw-bold" style="color: var(--pastel-rose);">Admin</h6>
-          <p class="mb-0 text-muted small">Fitur ini memerlukan update pada Google Apps Script Anda agar berfungsi online sepenuhnya.</p>
-        `;
-        wishesContainer.appendChild(div);
-        */
+
+        // Tampilkan pesan jika data kosong/error
+        if (wishesContainer.children.length <= 1) {
+          wishesContainer.innerHTML += '<p class="text-center text-muted small">Belum ada ucapan saat ini.</p>';
+        }
       });
   }
 
@@ -159,28 +145,35 @@ window.addEventListener("load", function () {
       fetch(scriptURL, {
         method: "POST",
         body: data,
+        mode: 'no-cors' // Penting untuk Google Apps Script
       })
         .then((response) => {
+          // Karena menggunakan no-cors, kita tidak bisa membaca isi response,
+          // tapi jika eksekusi sampai di sini berarti request terkirim.
           alert("Terima kasih atas ucapan dan doanya!");
           wishForm.reset();
-          // For UX, manually add the wish immediately so they see it
+
+          // Tambahkan ucapan secara manual ke tampilan (Optimistic UI)
           const nameVal = data.get('nama');
           const msgVal = data.get('ucapan');
 
           const div = document.createElement("div");
           div.className = "wish-item p-3 mb-3 border rounded bg-white shadow-sm text-start";
           div.innerHTML = `
-                <h6 class="mb-1 fw-bold" style="color: var(--pastel-rose);">${nameVal}</h6>
-                <p class="mb-0 text-muted small">${msgVal}</p>
-                <small class="text-secondary" style="font-size: 0.7em;">Baru saja</small>
+                <h6 class="mb-1">${nameVal}</h6>
+                <p class="mb-0">${msgVal}</p>
+                <small>Baru saja</small>
               `;
-          // Insert after loading spinner
-          if (wishesContainer.children.length > 0) {
-            wishesContainer.insertBefore(div, wishesContainer.children[1]);
-          } else {
-            wishesContainer.appendChild(div);
-          }
 
+          if (wishesContainer) {
+            // Masukkan setelah spinner (anak pertama) atau di paling atas
+            const firstChild = wishesContainer.children[1]; // children[0] adalah spinner
+            if (firstChild) {
+              wishesContainer.insertBefore(div, firstChild);
+            } else {
+              wishesContainer.appendChild(div);
+            }
+          }
         })
         .catch((error) => {
           console.error("Error!", error.message);
